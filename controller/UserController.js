@@ -45,6 +45,12 @@ exports.login = async (req, res) => {
 exports.register = async (req, res) => {
   const { email, password, userName, avatar, friends } = req.body;
   try {
+
+    const check = await userModel.findOne({ email: email });
+    if(check){
+      throw new Error('Email is exist')
+    }
+
     if (!email || !password || !userName) {
       throw new Error("Email, password and userName are required");
     }
@@ -81,12 +87,49 @@ exports.register = async (req, res) => {
 };
 
 //Add friend
-exports.addFriend = async(req,res) => {
-    try {
-        
-    } catch (error) {
-        
+exports.addfriend = async(req,res) => {
+  const {currUserId, friendId} = req.body;
+  try {
+    const user = await userModel.findOne({_id:currUserId});
+    
+    if (!user) {
+      return res.status(404).json({
+        status: false,
+        message: 'User not found'
+      });
     }
+
+    const friend = await userModel.findById(friendId);
+    if (!friend) {
+      return res.status(404).json({
+        status: false,
+        message: 'Friend not found'
+      });
+    }
+    
+    if (user.friends.includes(friendId)) {
+      user.friends = user.friends.filter(id => id !== friendId);
+      await user.save();
+      return res.status(200).json({
+        status: true,
+        message: 'Remove successfully'
+      });
+    }
+    
+    user.friends.push(friendId);
+    await user.save();
+    
+    return res.status(200).json({
+      status: true,
+    });
+    
+  } catch (error) {
+    console.log('Reason =>', error);
+    return res.status(500).json({
+      status: false,
+      message: error.message
+    });
+  }
 }
 
 exports.test = (req, res) => {

@@ -1,18 +1,17 @@
-const express = require('express')
-const route = express.Router()
-const userController = require('../controller/UserController')
+const express = require("express");
+const route = express.Router();
+const userController = require("../controller/UserController");
 
 //Login
-route.post('/login', userController.login)
+route.post("/login", userController.login);
 
 //Register
-route.post('/register',userController.register)
+route.post("/register", userController.register);
 
 //Add friend
-route.post('/add-friend/:currUserId/:friendId', userController.addFriend)
+route.post("/add_friend", userController.addfriend);
 
 //Test
-route.get('/test', userController.test)
+route.get("/test", userController.test);
 
-
-module.exports = route
+module.exports = route;

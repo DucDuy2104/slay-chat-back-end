@@ -7,7 +7,7 @@ const userSchema = new Schema({
   password: { type: String, required: true },
   userName: { type: String, required: true },
   avatar: { type: String, default: "" },
-  friends: { type: [String], default: [] },
+  friends: { type: Array, default: [] },
 });
 
 module.exports = mongoose.models.user || mongoose.model("user", userSchema);
