@@ -59,7 +59,7 @@ exports.createConversation = async (req, res) => {
         const realParticipants = await getParticipantsByConversationId(conversation._id)
 
         socket.getIo().emit('createConversation', {
-            conversation,
+            ...conversation.toObject(),
             participants: realParticipants,
             lastMessage: null
         })
