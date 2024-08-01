@@ -9,6 +9,10 @@ const ConversationSchema = new Schema({
     image: {
         type: String,
         default: 'https://png.pngtree.com/png-vector/20190615/ourlarge/pngtree-friendsgroupusersteam-blue-icon-on-abstract-cloud-backgrou-png-image_1486173.jpg'
+    },
+    createdAt: {
+        type: Date,
+        default: Date.now
     }
 })
 
