@@ -23,21 +23,11 @@ exports.login = async (req, res) => {
     if (!pass) {
       throw new Error("Incorrect password!!!");
     } else {
-      const userInf = new userModel({
-        email: email,
-        password: pass,
-        userName: currUser.userName,
-        avatar: currUser.avatar,
-        friends: currUser.friends,
-      });
-      return res.status(200).json({
-        status: true,
-        data: userInf,
-      });
+      return res.status(200).json({status: true, data: currUser.toObject()});
     }
   } catch (error) {
     console.log("Reason login fail => ", error);
-    return res.status(500).json({ message: error.message });
+    return res.status(500).json({status: false, message: error.message });
   }
 };
 
@@ -82,7 +72,7 @@ exports.register = async (req, res) => {
     });
   } catch (error) {
     console.error("Registration failed:", error);
-    return res.status(400).json({ message: error.message });
+    return res.status(400).json({status: false, message: error.message });
   }
 };
 
@@ -132,6 +122,112 @@ exports.addfriend = async(req,res) => {
   }
 }
 
+
+exports.getFriends = async (req, res) => {
+  const { userId } = req.params;
+  try {
+    const user = await userModel.findById(userId);
+    
+    if (!user) {
+      return res.status(404).json({
+        status: false,
+        message: 'User not found'
+      });
+    }
+    
+    if(user.friends.length === 0) {
+      return res.status(200).json({status: true, data: []})
+    }
+
+    const friends = user.friends.map(friend => {
+      return userModel.findById(friend)
+    }) 
+
+    const result = await Promise.all(friends);
+    
+    return res.status(200).json({ status: true, data: result })
+  } catch (error) {
+    console.log('Reason =>', error);
+    return res.status(500).json({
+      status: false,
+      message: "Lỗi hệ thống"
+    });
+  }
+}
+
+
+exports.findFriendByEmail = async (req,res) => {
+  try {
+    const {userId, friendEmail} = req.body
+    const friend = await userModel.findOne({ email: friendEmail})
+    if(!friend) {
+      return res.status(404).json({status: false, message: "Friend not found", data: []})
+    }
+    const user = await userModel.findById(userId)
+    if(!user) {
+      return res.status(404).json({status: false, message: "User not found", data: []})
+    }
+    if(user.friends.includes(friend._id)) {
+      return res.status(200).json({status: true, data: [{
+        ...friend._doc,
+        isFriend: true
+      }]})
+    } else {
+      return res.status(200).json({status: true, message: "User is not friend", data: [{
+        ...friend._doc,
+        isFriend: false
+      }]})
+    }
+  } catch (error) {
+    console.log('Reason =>', error);
+    return res.status(500).json({
+      status: false,
+      message: "Lỗi hệ thống"
+    });
+    
+  }
+}
+
+exports.updateProfile = async (req, res) => {
+  try {
+    const infomation = req.body
+    const user = await userModel.findById(infomation.userId)
+    if(!user) {
+      return res.status(404).json({ status: false, message: "User not found" });
+    }
+    user.userName = infomation.userName
+    user.avatar = infomation.avatar
+    const savedUser = await user.save()
+    return res.status(200).json({ status: true, message: "Update profile successfully", data: savedUser });
+    
+  } catch (error) {
+    console.log(error)
+    return res.status(500).json({ status: false, message: "Error updating profile" });
+  }
+}
+
+
+exports.updatePassword = async (req, res) => {
+  try {
+    const infomation = req.body
+    const user = await userModel.findById(infomation.userId)
+    if(!user) {
+      return res.status(404).json({ status: false, message: "User not found" });
+    }
+    if(user.password.toString()!== infomation.oldPassword.toString()) {
+      return res.status(400).json({ status: false, message: "Old password is incorrect" });
+    }
+
+    user.password = infomation.newPassword
+    const savedUser = await user.save()
+    return res.status(200).json({ status: true, message: "Update password successfully", data: savedUser });
+  } catch (error) {
+    console.log(error)
+    return res.status(500).json({ status: false, message: "Error updating password" });
+    
+  }
+}
+ 
 exports.test = (req, res) => {
-  res.status(200).json({ message: "Test success" });
+  res.status(200).json({ status: false, message: "Test success" });
 };
