@@ -2,6 +2,7 @@ const Conversation = require('../model/Conversation');
 const Participant = require('../model/Participant');
 const User = require('../model/User')
 const Message = require('../model/Message')
+const socket = require('../socket')
 
 const getParticipantsByConversationId = async (conversationId) => {
     const participants = await Participant.find({ conversationId: conversationId });
@@ -56,6 +57,12 @@ exports.createConversation = async (req, res) => {
         await Promise.all(participantPromises);
 
         const realParticipants = await getParticipantsByConversationId(conversation._id)
+
+        socket.getIo().emit('createConversation', {
+            conversation,
+            participants: realParticipants,
+            lastMessage: null
+        })
 
         return res.status(200).json({ status: true,message: 'Created conversation successfully', data: {
             ...conversation._doc,
